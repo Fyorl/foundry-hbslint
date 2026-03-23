@@ -1,0 +1,31 @@
+name: Create Pre-release
+
+on:
+  push:
+    tags:
+      - 'release-*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify version matches tag
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          TAG_VERSION="${TAG#release-}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "Error: tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "VERSION=$TAG_VERSION" >> "$GITHUB_ENV"
+
+      - name: Create pre-release
+        run: gh release create "$GITHUB_REF_NAME" --prerelease --title "v$VERSION" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,25 @@
+{
+  "name": "@bytestruct/foundry-hbslint",
+  "version": "1.0.1",
+  "type": "module",
+  "main": "src/index.mjs",
+  "bin": {
+    "hbslint": "bin/hbslint.mjs"
+  },
+  "scripts": {
+    "lint": "eslint src/ bin/ test/",
+    "test": "node --test \"test/**/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT",
+  "repository": "github:Fyorl/foundry-hbslint",
+  "dependencies": {
+    "@handlebars/parser": "^2.2.2",
+    "glob": "^13.0.6"
+  },
+  "devDependencies": {
+    "@bytestruct/foundry-eslint": "^1.0.1"
+  }
+}
