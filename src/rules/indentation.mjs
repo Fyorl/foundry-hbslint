@@ -45,7 +45,7 @@ class IndentationRule extends BaseRule {
   /** @override */
   _check(ast) {
     this.#lines = Array.from(getLines(this.source));
-    this.#walkBody(ast.body, 0);
+    this.#walkBody(ast.body, null);
   }
 
   /* -------------------------------------------- */
@@ -58,15 +58,14 @@ class IndentationRule extends BaseRule {
   /* -------------------------------------------- */
 
   /**
-   * Check that the close tag of a BlockStatement is at the same indentation depth as its open tag.
+   * Check that the close tag of a BlockStatement matches the block's opening indentation.
    * @param {AST.BlockStatement} node
-   * @param {number} depth
+   * @param {string} indent
    */
-  #checkCloseTagIndent(node, depth) {
-    const expected = this.#indent.repeat(depth);
+  #checkCloseTagIndent(node, indent) {
     const lineText = this.#lines[node.loc.end.line - 1];
     const leading = lineText.match(/^(\s*)/)[1];
-    if ( leading !== expected ) this.report(this.#message(expected, leading), { column: 0, line: node.loc.end.line });
+    if ( leading !== indent ) this.report(this.#message(indent, leading), { column: 0, line: node.loc.end.line });
   }
 
   /* -------------------------------------------- */
@@ -74,15 +73,14 @@ class IndentationRule extends BaseRule {
   /**
    * Check non-blank lines within a ContentStatement's value for correct leading whitespace.
    * @param {AST.ContentStatement} node
-   * @param {number} depth
+   * @param {string} indent
    */
-  #checkContentLines(node, depth) {
-    const expected = this.#indent.repeat(depth);
+  #checkContentLines(node, indent) {
     let lineNum = node.loc.start.line;
     for ( const line of getLines(node.value) ) {
       if ( line.trim() ) {
         const leading = line.match(/^(\s*)/)[1];
-        if ( leading !== expected ) this.report(this.#message(expected, leading), { column: 0, line: lineNum });
+        if ( leading !== indent ) this.report(this.#message(indent, leading), { column: 0, line: lineNum });
       }
       lineNum++;
     }
@@ -93,13 +91,23 @@ class IndentationRule extends BaseRule {
   /**
    * Check that the source line a statement starts on has the expected leading whitespace.
    * @param {AST.BaseNode} node
-   * @param {number} depth
+   * @param {string} indent
    */
-  #checkStatementIndent(node, depth) {
-    const expected = this.#indent.repeat(depth);
+  #checkStatementIndent(node, indent) {
     const lineText = this.#lines[node.loc.start.line - 1];
     const leading = lineText.match(/^(\s*)/)[1];
-    if ( leading !== expected ) this.report(this.#message(expected, leading), { column: 0, line: node.loc.start.line });
+    if ( leading !== indent ) this.report(this.#message(indent, leading), { column: 0, line: node.loc.start.line });
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Return the leading whitespace of the given source line.
+   * @param {number} lineNum  1-based line number.
+   * @returns {string}
+   */
+  #getLineIndent(lineNum) {
+    return this.#lines[lineNum - 1].match(/^(\s*)/)[1];
   }
 
   /* -------------------------------------------- */
@@ -118,22 +126,23 @@ class IndentationRule extends BaseRule {
   /* -------------------------------------------- */
 
   /**
-   * Walk an array of statement nodes at the given nesting depth.
+   * Walk an array of statement nodes, checking indentation relative to each block's actual indent.
+   * Pass null at the root level to skip checking root nodes' own indentation.
    * @param {AST.Statement[]} nodes
-   * @param {number} depth
+   * @param {string|null} indent  Expected leading whitespace, or null at root.
    */
-  #walkBody(nodes, depth) {
+  #walkBody(nodes, indent) {
     for ( const node of nodes ) {
       if ( node.type === "BlockStatement" ) {
-        this.#checkStatementIndent(node, depth);
-        this.#walkBody(node.program?.body ?? [], this.options.blockDepth ? depth + 1 : depth);
-        if ( node.inverse ) this.#walkBody(node.inverse.body, this.options.blockDepth ? depth + 1 : depth);
-        this.#checkCloseTagIndent(node, depth);
+        if ( indent !== null ) this.#checkStatementIndent(node, indent);
+        const blockIndent = this.#getLineIndent(node.loc.start.line);
+        const bodyIndent = this.options.blockDepth ? blockIndent + this.#indent : blockIndent;
+        this.#walkBody(node.program?.body ?? [], bodyIndent);
+        if ( node.inverse ) this.#walkBody(node.inverse.body, bodyIndent);
+        this.#checkCloseTagIndent(node, blockIndent);
       } else if ( node.type === "ContentStatement" ) {
-        this.#checkContentLines(node, depth);
-      } else {
-        this.#checkStatementIndent(node, depth);
-      }
+        if ( indent !== null ) this.#checkContentLines(node, indent);
+      } else if ( indent !== null ) this.#checkStatementIndent(node, indent);
     }
   }
 

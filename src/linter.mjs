@@ -47,7 +47,7 @@ export function check(source, config) {
   const violations = [];
   for ( const [name, { enabled, options, severity }] of Object.entries(config.rules) ) {
     if ( !enabled ) continue;
-    const fn = config[name];
+    const fn = rules[name];
     if ( !fn ) {
       console.warn(`hbslint: no implementation found for rule "${name}"`);
       continue;

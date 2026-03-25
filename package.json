@@ -1,6 +1,6 @@
 {
   "name": "@bytestruct/foundry-hbslint",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "main": "src/index.mjs",
   "bin": {
@@ -20,6 +20,6 @@
     "glob": "^13.0.6"
   },
   "devDependencies": {
-    "@bytestruct/foundry-eslint": "^1.0.1"
+    "@bytestruct/foundry-eslint": "^1.0.2"
   }
 }

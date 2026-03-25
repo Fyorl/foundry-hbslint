@@ -67,7 +67,7 @@ function locToOffset(source, loc) {
   let offset = 0;
   let lineNum = 0;
   for ( const line of getLines(source) ) {
-    if ( lineNum === loc.line - 1 ) break;
+    if ( lineNum === (loc.line - 1) ) break;
     offset += line.length + 1; // +1 for the \n (CRLF is collapsed by getLines)
     lineNum++;
   }

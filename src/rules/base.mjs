@@ -37,21 +37,6 @@ import { getRawBetween } from "../utils.mjs";
  * @param {object} node
  * @param {Record<string, NodeListener>} listeners
  */
-function walk(node, listeners) {
-  if ( !node || (typeof node.type !== "string") ) return;
-  listeners[node.type]?.(node);
-  for ( const [key, val] of Object.entries(node) ) {
-    if ( key === "loc" ) continue;
-    if ( Array.isArray(val) ) {
-      for ( const item of val ) walk(item, listeners);
-    } else if ( val && (typeof val === "object") ) {
-      walk(val, listeners);
-    }
-  }
-}
-
-/* -------------------------------------------- */
-
 /**
  * Base class for hbslint rules. Subclasses must define a static meta property and implement _listeners().
  * The static rule() method returns the rule function used by the linter registry.
@@ -170,4 +155,25 @@ export class BaseRule {
     });
   }
 
+}
+
+/* -------------------------------------------- */
+
+/**
+ * Recursively walk an HBS AST node and dispatch each node to the matching listener.
+ * Skips `loc` to avoid traversing source position objects.
+ * @param {object} node
+ * @param {Record<string, NodeListener>} listeners
+ */
+function walk(node, listeners) {
+  if ( !node || (typeof node.type !== "string") ) return;
+  listeners[node.type]?.(node);
+  for ( const [key, val] of Object.entries(node) ) {
+    if ( key === "loc" ) continue;
+    if ( Array.isArray(val) ) {
+      for ( const item of val ) walk(item, listeners);
+    } else if ( val && (typeof val === "object") ) {
+      walk(val, listeners);
+    }
+  }
 }

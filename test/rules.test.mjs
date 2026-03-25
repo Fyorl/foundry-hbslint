@@ -21,13 +21,15 @@ const load = fixture => readFileSync(join(fixtureDir, fixture), "utf8");
 /**
  * @typedef Theory
  * @property {string} name
- * @property {string} fixture - Path relative to test/fixtures/
+ * @property {string} fixture  Path relative to test/fixtures/
  * @property {Function} rule
  * @property {Record<string, unknown>} [options]
- * @property {Array<{ line?: number, column?: number, message?: RegExp }>} [violations]
+ * @property {{ line?: number, column?: number, message?: RegExp }[]} [violations]
  */
 
-/** @type {Theory[]} */
+/**
+ * @type {Theory[]}
+ */
 const theories = [
 
   // line-length
@@ -137,8 +139,7 @@ const theories = [
     violations: [
       { column: 0, line: 2, message: /indentation/ },
       { column: 0, line: 3, message: /indentation/ },
-      { column: 0, line: 4, message: /indentation/ },
-      { column: 0, line: 5, message: /indentation/ }
+      { column: 0, line: 4, message: /indentation/ }
     ]
   },
   {
@@ -155,9 +156,21 @@ const theories = [
     violations: [
       { column: 0, line: 2, message: /indentation/ },
       { column: 0, line: 3, message: /indentation/ },
-      { column: 0, line: 4, message: /indentation/ },
-      { column: 0, line: 5, message: /indentation/ }
+      { column: 0, line: 4, message: /indentation/ }
     ]
+  },
+  {
+    fixture: "indentation/valid-html-context.hbs",
+    name: "indentation: block indented inside HTML is valid when content matches block indent (blockDepth: false)",
+    options: { blockDepth: false, size: 4, style: "space" },
+    rule: indentationRule
+  },
+  {
+    fixture: "indentation/invalid-html-context.hbs",
+    name: "indentation: content indented beyond block level reports violation (blockDepth: false)",
+    options: { blockDepth: false, size: 4, style: "space" },
+    rule: indentationRule,
+    violations: [{ column: 0, line: 2, message: /indentation/ }]
   }
 ];
 
