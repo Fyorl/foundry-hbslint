@@ -16,8 +16,8 @@ export default {
     indentation: ["error", { blockDepth: false, size: 4, style: "space" }],
     "line-length": ["warn", { max: 120 }],
     "mustache-spacing": "error",
-    "quote-style": ["error", { style: "double" }],
-  },
+    "quote-style": ["error", { style: "double" }]
+  }
 };
 ```
 
